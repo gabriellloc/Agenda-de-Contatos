@@ -37,35 +37,44 @@ class Contacts:
 	def __init__(self):
 		print("Bem-vindo a sua lista de contatos!")
 		self.contatos = listaDeContatos
+		
+		# Essa variável vai armazenar a lista em ordem alfabética.
+		self.contatos_ordenados = sorted(self.contatos, key=lambda c: c["nome"].lower())
+
+		# Aqui define um tamanho padrão para todos os nomes levando em consideração o maior nome.
+		self.tamanhoPad = 0
+		for i in self.contatos:
+			tamanho = len(i["nome"])
+			if tamanho > self.tamanhoPad:
+				self.tamanhoPad = tamanho
 		pass
 
 	def listarContatos(self):
-		# Essa variável vai armazenar a lista em ordem alfabética.
-		contatos_ordenados = sorted(self.contatos, key=lambda c: c["nome"].lower())
-
-		print("\n---------------------------------")
-		print("Lista de Contatos:")
-
-		# Aqui define um tamanho padrão para todos os nomes levando em consideração o maior nome.
-		tamanhoPad = 0
+		self.contatos = listaDeContatos
+		self.contatos_ordenados = sorted(self.contatos, key=lambda c: c["nome"].lower())
 		for i in self.contatos:
 			tamanho = len(i["nome"])
-			if tamanho > tamanhoPad:
-				tamanhoPad = tamanho
+			if tamanho > self.tamanhoPad:
+				self.tamanhoPad = tamanho
 		
-		for i in contatos_ordenados:
+		print("\n---------------------------------")
+		print("Lista de Contatos:")		
+		for i in self.contatos_ordenados:
 			if i["favorito"] == True:
-				print(f"Nome: {i["nome"].ljust(tamanhoPad)} {i["telefone"]} - FAVORITADO")
+				print(f"Nome: {i["nome"].ljust(self.tamanhoPad)} {i["telefone"]} - FAVORITADO")
 
-		for i in contatos_ordenados:
+		for i in self.contatos_ordenados:
 			if i['favorito'] == False:
-				print(f"Nome: {i["nome"].ljust(tamanhoPad)} {i["telefone"]}")
+				print(f"Nome: {i["nome"].ljust(self.tamanhoPad)} {i["telefone"]}")
 
 	def adicionarContato(self):
 		nome = input("Digite o nome do contato: ")
 		aux = nome.split(" ")
-		nome = aux[0].capitalize() + " " + aux[-1][:3].capitalize()
-		telefone = input("Digite o número do contato(sem formatação):\n")
+		if len(aux) > 1:
+			nome = aux[0].capitalize() + " " + aux[-1][:3].capitalize()
+		else:
+			nome = aux[0].capitalize()
+		telefone = input("Digite o número do contato (sem formatação):\n")
 		telefone = formatTelefone(telefone)
 		while telefone == False:
 			print("Formatação inválida. Tente Novamente.")
@@ -90,9 +99,53 @@ class Contacts:
 
 		self.contatos.append({"nome": nome, "telefone": telefone, "favorito": favorito})
 
-	
-
-
+	def modificarContato(self):
+		aux = 0
+		print("\n-------------------------")
+		for id, contato in enumerate(self.contatos_ordenados, start=1):
+			if contato["favorito"] == True:
+				print(f"ID: {id} - {contato["nome"].ljust(self.tamanhoPad)} {contato["telefone"]} - FAVORITO")
+				aux += 1
+			elif contato["favorito"] == False:
+				print(f"ID: {id} - {contato["nome"].ljust(self.tamanhoPad)} {contato["telefone"]}")
+				aux += 1
+				
+		print("ID: 0 - sair")
+		modificar = input("Digite o ID do contato que você deseja modificar: ")
+		if modificar == "0":
+			return
+		
+		try:
+			modificar = int(modificar)
+		except:
+			print("Você digitou um valor inválido.")
+			print("Tente novamente.")
+			return self.modificarContato()
+		
+		for id, contato in enumerate(self.contatos_ordenados, start=1):
+			if modificar == id:
+				print(f"\nContato a ser modificado: {contato['nome']}")
+				print("\nO que deseja modificar:")
+				value = input("1- Nome\n2- Número\n3- Favoritar/Remover favorito\n4- Remover contato\n0- Sair\n")
+				
+				match value:
+					case "0":
+						return
+					case "1":
+						contato["nome"] = input("Digite o novo nome: ")
+					case "2":
+						contato["telefone"] = input("Digite o novo número(sem formatação): ")
+						contato["telefone"] = formatTelefone(contato["telefone"])
+					case "3":
+						if contato["favorito"] == True:
+							contato["favorito"] = False
+						else:
+							contato["favorito"] = True
+					case "4":
+						self.contatos.remove(contato)
+					case _:
+						print("Valor não reconhecido.")
+						return self.modificarContato()
 
 running = True
 start = Contacts()
@@ -100,7 +153,8 @@ while running:
 	value = input("\nEscolha uma opção abaixo:\n" \
 	"1- Lista de Contatos\n" \
 	"2- Cadastrar Novo Contato\n" \
-	"0- Finalizar Execução.\n")
+	"3- Modificar Contato\n" \
+	"0- Finalizar Execução\n")
 
 	match value:
 		case "0":
@@ -112,6 +166,9 @@ while running:
 
 		case "2":
 			start.adicionarContato()
+		
+		case "3":
+			start.modificarContato()
 
 		case _:
 			print("Valor desconhecido...\nTente Novamente.")
